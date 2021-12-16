@@ -4,11 +4,14 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private float speed;
+    [SerializeField] private float runSpeed;
+    [SerializeField] private float swipeDistance;
+    [SerializeField] private float doubleJumpMultiplier;
     [SerializeField] private Animator animator;
     [SerializeField] private Rigidbody rb;
-    [SerializeField] private GameObject player;
-    [SerializeField] private float swipeDistance;
+
+    private bool canDoubleJump = false;
+    private bool canJump = false;
 
     private void Awake()
     {
@@ -21,27 +24,44 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+
         if (!SwipeManager.tap)
         {
             animator.SetBool("IsRunning", false);
             animator.SetBool("SwipeLeft", false);
             animator.SetBool("SwipeRight", false);
             animator.SetBool("IsJumping", false);
+            animator.SetBool("IsDoubleJumping", false);
             animator.SetBool("IsStopped", true);
+        }
+
+        if (SwipeManager.swipeUp)
+        {
+            animator.SetBool("IsStopped", false);
+            animator.SetBool("IsJumping", true);
+            rb.AddForce(Vector3.up * swipeDistance);
+            Debug.Log("Up");
+            canDoubleJump = true;
+        }
+        if (SwipeManager.swipeUp && canDoubleJump)
+        {
+            animator.SetBool("IsStopped", false);
+            animator.SetBool("IsDoubleJumping", true);
+            rb.AddForce(Vector3.up * doubleJumpMultiplier);
+            canDoubleJump = false;
         }
 
         if (SwipeManager.running)
         {
             animator.SetBool("IsStopped", false);
             animator.SetBool("IsRunning", true);
-            transform.Translate(Vector3.forward * Time.deltaTime * speed, Space.World);
+            transform.Translate(Vector3.forward * Time.deltaTime * runSpeed, Space.World);
         }
 
         if (SwipeManager.swipeLeft)
         {
             animator.SetBool("SwipeLeft", true);
             rb.AddForce(Vector3.left * swipeDistance);
-            //player.transform.Translate(Vector3.left * Time.deltaTime * swipeDistance, Space.World);
             Debug.Log("Left");
         }
 
@@ -49,36 +69,8 @@ public class PlayerController : MonoBehaviour
         {
             animator.SetBool("SwipeRight", true);
             rb.AddForce(Vector3.right * swipeDistance);
-           // player.transform.Translate(Vector3.right * Time.deltaTime * swipeDistance, Space.World);
             Debug.Log("Right");
         }
 
-        if (SwipeManager.swipeUp)
-        {
-            animator.SetBool("IsJumping", true);
-            rb.AddForce(Vector3.up * swipeDistance);
-            Debug.Log("Up");
-        }
     }
 }
-
-
-
-/*    if (Input.touchCount > 0 && !SwipeManager.swipeRight && !SwipeManager.swipeLeft)
-    {
-        animator.SetBool("IsStopped", false);
-        animator.SetBool("IsRunning", true);
-        transform.Translate(Vector3.forward * Time.deltaTime * speed, Space.World);
-        isStarted = true;
-        //Debug.Log("Runnig");
-    }
-
-    if (isStarted && Input.touchCount == 0)
-    {
-        animator.SetBool("IsRunning", false);
-        animator.SetBool("IsStopped", true);
-        //Debug.Log("Stopped");
-    }
-
-*/
-
